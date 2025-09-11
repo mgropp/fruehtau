@@ -6,7 +6,10 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.androidx.room)
 }
+
+room { schemaDirectory("$projectDir/schemas") }
 
 android {
     namespace = "io.gropp.fruehtau"
@@ -41,25 +44,30 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.google.accompanist.permissions)
+    implementation(libs.material)
+    implementation(libs.timber)
+    implementation(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(libs.timber)
-    implementation(libs.androidx.datastore.preferences)
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.google.accompanist.permissions)
 
     // Hilt
     implementation(libs.hilt.android)
-    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.common)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
     // Compose
@@ -80,4 +88,11 @@ dependencies {
 
     // Location
     implementation(libs.google.play.services.location)
+
+    // Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 }
+
+configurations.all { exclude(group = "com.intellij", module = "annotations") }
