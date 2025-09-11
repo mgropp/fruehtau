@@ -5,7 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +12,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.gropp.fruehtau.di.IoDispatcher
 import io.gropp.fruehtau.io.MapRepository
 import io.gropp.fruehtau.io.ThemeRepository
+import io.gropp.fruehtau.io.preferences.Keys.PREF_LATITUDE
+import io.gropp.fruehtau.io.preferences.Keys.PREF_LONGITUDE
+import io.gropp.fruehtau.io.preferences.Keys.PREF_ZOOM_LEVEL
 import io.gropp.fruehtau.service.LocationService
 import io.gropp.fruehtau.util.DynamicData
 import javax.inject.Inject
@@ -38,7 +40,7 @@ constructor(
     val tileRendererLayerLoader = TileRendererLayerLoader(this, ioDispatcher, appContext)
 
     suspend fun ensureLoaded(context: Context) {
-        mapRepository.ensureLoaded(context)
+        mapRepository.ensureLoaded()
         themeRepository.ensureLoaded(context)
     }
 
@@ -83,12 +85,6 @@ constructor(
                 }
             }
         }
-    }
-
-    companion object {
-        val PREF_LATITUDE = intPreferencesKey("latitude")
-        val PREF_LONGITUDE = intPreferencesKey("longitude")
-        val PREF_ZOOM_LEVEL = intPreferencesKey("zoom_level")
     }
 }
 

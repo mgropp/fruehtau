@@ -1,6 +1,7 @@
 package io.gropp.fruehtau.io
 
 import android.content.Context
+import android.net.Uri
 import io.gropp.fruehtau.di.IoDispatcher
 import io.gropp.fruehtau.io.test.loadTestThemes
 import io.gropp.fruehtau.util.DynamicData
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.mapsforge.map.rendertheme.XmlRenderTheme
+import timber.log.Timber
 
 @Singleton
 class ThemeRepository @Inject constructor(@param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) {
@@ -24,5 +26,9 @@ class ThemeRepository @Inject constructor(@param:IoDispatcher private val ioDisp
                 _state.value = DynamicData.Loaded(themes)
             }
         }
+    }
+
+    suspend fun importFromUri(uri: Uri) {
+        withContext(ioDispatcher) { Timber.i("Importing theme from URI: $uri") }
     }
 }

@@ -9,17 +9,26 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import io.gropp.fruehtau.ui.LoadingScreen
 import io.gropp.fruehtau.util.DynamicData
 import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.layer.renderer.TileRendererLayer
 
 @Composable
-fun MapView(viewModel: MapViewModel = hiltViewModel()) {
+fun MapView(
+    viewModel: MapViewModel =
+        hiltViewModel(
+            checkNotNull(LocalViewModelStoreOwner.current) {
+                "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+            },
+            null,
+        )
+) {
     val context = LocalContext.current
     LaunchedEffect(Unit) { viewModel.ensureLoaded(context) }
 
