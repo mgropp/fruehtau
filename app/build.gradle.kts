@@ -58,6 +58,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.timber)
     implementation(libs.androidx.room.compiler)
+    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.material.icons)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
