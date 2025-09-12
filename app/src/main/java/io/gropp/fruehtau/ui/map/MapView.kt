@@ -26,11 +26,12 @@ fun MapView(
             null,
         )
 ) {
-
     val tileRendererLayer by viewModel.tileRendererLayer.collectAsState(null)
-    when (val renderer = tileRendererLayer) {
-        null -> LoadingScreen()
-        else -> MapViewControl(renderer, viewModel)
+    MapScaffold {
+        when (val renderer = tileRendererLayer) {
+            null -> LoadingScreen()
+            else -> MapViewControl(renderer, viewModel)
+        }
     }
 }
 
