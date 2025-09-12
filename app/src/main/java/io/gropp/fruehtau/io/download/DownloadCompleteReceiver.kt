@@ -13,9 +13,9 @@ import androidx.work.workDataOf
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.AndroidEntryPoint
-import io.gropp.fruehtau.io.MapRepository
-import io.gropp.fruehtau.io.ThemeRepository
 import io.gropp.fruehtau.io.db.PendingDownloadRepository
+import io.gropp.fruehtau.io.map.MapRepository
+import io.gropp.fruehtau.io.theme.ThemeRepository
 import javax.inject.Inject
 import timber.log.Timber
 
@@ -73,7 +73,7 @@ constructor(
 
                 when (downloadInfo.purpose) {
                     DownloadPurpose.MAP -> mapRepository.importFromUri(uri, downloadInfo.target)
-                    DownloadPurpose.THEME -> themeRepository.importFromUri(uri)
+                    DownloadPurpose.THEME -> themeRepository.importFromUri(uri, downloadInfo.target)
                 }
             } finally {
                 dm.remove(downloadId)

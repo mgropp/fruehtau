@@ -2,12 +2,10 @@ package io.gropp.fruehtau.ui.map
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -15,7 +13,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import io.gropp.fruehtau.ui.LoadingScreen
-import io.gropp.fruehtau.util.DynamicData
 import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.layer.renderer.TileRendererLayer
 
@@ -29,15 +26,11 @@ fun MapView(
             null,
         )
 ) {
-    val context = LocalContext.current
-    LaunchedEffect(Unit) { viewModel.ensureLoaded(context) }
 
-    val tileRendererLayerState by viewModel.tileRendererLayerLoader.state.collectAsState(DynamicData.Loading)
-    when (val state = tileRendererLayerState) {
-        DynamicData.Empty,
-        DynamicData.Loading -> LoadingScreen()
-
-        is DynamicData.Loaded -> MapViewControl(state.data, viewModel)
+    val tileRendererLayer by viewModel.tileRendererLayer.collectAsState(null)
+    when (val renderer = tileRendererLayer) {
+        null -> LoadingScreen()
+        else -> MapViewControl(renderer, viewModel)
     }
 }
 
@@ -50,7 +43,7 @@ private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapV
                 mapView.value = this
                 isClickable = true
                 layerManager.layers.add(tileRendererLayer)
-                viewModel.restoreMapCamera(this)
+                viewModel.restoreMapViewPosition(this)
             }
         },
         update = { view ->
@@ -65,7 +58,7 @@ private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapV
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(Unit) {
         val obs = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) mapView.value?.let { viewModel.saveMapCamera(it) }
+            if (event == Lifecycle.Event.ON_STOP) mapView.value?.let { viewModel.saveMapViewPosition(it) }
         }
         lifecycle.addObserver(obs)
         onDispose { lifecycle.removeObserver(obs) }
