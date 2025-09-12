@@ -1,15 +1,11 @@
 package io.gropp.fruehtau.ui.map
 
 import android.content.Context
-import androidx.lifecycle.viewModelScope
-import io.gropp.fruehtau.util.DynamicData
-import io.gropp.fruehtau.util.combineDynamicData
+import io.gropp.fruehtau.io.map.MapService
+import io.gropp.fruehtau.io.theme.ThemeService
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import org.mapsforge.map.android.graphics.AndroidGraphicFactory
 import org.mapsforge.map.android.util.AndroidUtil
@@ -19,33 +15,14 @@ import org.mapsforge.map.model.DisplayModel
 import org.mapsforge.map.model.FrameBufferModel
 import org.mapsforge.map.model.MapViewPosition
 import org.mapsforge.map.rendertheme.XmlRenderTheme
-import org.mapsforge.map.rendertheme.internal.MapsforgeThemes
 
-class TileRendererLayerLoader(
-    mapViewModel: MapViewModel,
-    private val ioDispatcher: CoroutineDispatcher,
-    private val context: Context,
-) {
-    private val themeNameState = MutableStateFlow<DynamicData<String?>>(DynamicData.Loaded(null))
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val state: StateFlow<DynamicData<TileRendererLayer>> =
-        combineDynamicData(mapViewModel.mapRepository.state, mapViewModel.themeRepository.state, themeNameState) {
-                mapDataStore,
-                themes,
-                themeName ->
-                val theme =
-                    (if (themeName == null) themes.values.firstOrNull() else themes[themeName])
-                        ?: MapsforgeThemes.DEFAULT
-                createTileLayer(context, mapDataStore, theme)
-            }
-            .stateIn(
-                scope = mapViewModel.viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = DynamicData.Empty,
-            )
-
-    private suspend fun createTileLayer(
+fun getTileRendererLayerFlow(
+    mapService: MapService,
+    themeService: ThemeService,
+    context: Context,
+    ioDispatcher: CoroutineDispatcher,
+): Flow<TileRendererLayer?> {
+    suspend fun createTileLayer(
         context: Context,
         mapDataStore: MapDataStore,
         theme: XmlRenderTheme,
@@ -62,6 +39,14 @@ class TileRendererLayerLoader(
                 AndroidGraphicFactory.INSTANCE,
             )
         }
+
+    return combine(mapService.mapDataStore, themeService.theme) { mapDataStore, theme ->
+        if (mapDataStore == null || theme == null) {
+            null
+        } else {
+            createTileLayer(context, mapDataStore, theme)
+        }
+    }
 }
 
 private fun createTileLayer(

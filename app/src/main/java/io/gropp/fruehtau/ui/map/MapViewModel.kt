@@ -1,28 +1,20 @@
 package io.gropp.fruehtau.ui.map
 
 import android.content.Context
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.gropp.fruehtau.di.IoDispatcher
-import io.gropp.fruehtau.io.MapRepository
-import io.gropp.fruehtau.io.ThemeRepository
-import io.gropp.fruehtau.io.preferences.Keys.PREF_LATITUDE
-import io.gropp.fruehtau.io.preferences.Keys.PREF_LONGITUDE
-import io.gropp.fruehtau.io.preferences.Keys.PREF_ZOOM_LEVEL
+import io.gropp.fruehtau.io.map.MapService
+import io.gropp.fruehtau.io.preferences.MapViewPositionRepository
+import io.gropp.fruehtau.io.theme.ThemeService
 import io.gropp.fruehtau.service.LocationService
-import io.gropp.fruehtau.util.DynamicData
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.mapsforge.core.model.LatLong
 import org.mapsforge.map.view.MapView
 import timber.log.Timber
 
@@ -30,62 +22,40 @@ import timber.log.Timber
 class MapViewModel
 @Inject
 constructor(
-    val mapRepository: MapRepository,
-    val themeRepository: ThemeRepository,
-    private val dataStore: DataStore<Preferences>,
+    mapService: MapService,
+    themeService: ThemeService,
+    private val mapViewPositionRepository: MapViewPositionRepository,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @ApplicationContext appContext: Context,
     val locationService: LocationService,
 ) : ViewModel() {
-    val tileRendererLayerLoader = TileRendererLayerLoader(this, ioDispatcher, appContext)
+    val mapDataStore =
+        mapService.mapDataStore.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null,
+        )
 
-    suspend fun ensureLoaded(context: Context) {
-        mapRepository.ensureLoaded()
-        themeRepository.ensureLoaded(context)
+    val tileRendererLayer =
+        getTileRendererLayerFlow(mapService, themeService, appContext, ioDispatcher)
+            .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = null)
+
+    fun saveMapViewPosition(mapView: MapView) {
+        viewModelScope.launch(ioDispatcher) { mapViewPositionRepository.save(mapView.model.mapViewPosition) }
     }
 
-    fun saveMapCamera(mapView: MapView) {
-        val center = mapView.model.mapViewPosition.center
-        val zoomLevel = mapView.model.mapViewPosition.zoomLevel.toInt()
+    fun restoreMapViewPosition(mapView: MapView) {
+        Timber.i("Restoring map view position")
         viewModelScope.launch(ioDispatcher) {
-            Timber.i("Saving map camera: $center, zoomLevel=$zoomLevel")
-            dataStore.edit { pref ->
-                pref[PREF_LATITUDE] = center.latitudeE6
-                pref[PREF_LONGITUDE] = center.longitudeE6
-                pref[PREF_ZOOM_LEVEL] = zoomLevel
-            }
-            Timber.i("Map camera saved")
-        }
-    }
-
-    fun restoreMapCamera(mapView: MapView) {
-        Timber.i("Restoring map camera")
-        viewModelScope.launch(ioDispatcher) {
-            val prefs =
-                dataStore.data
-                    .catch { e ->
-                        Timber.e(e, "Failed to read map camera prefs")
-                        emit(emptyPreferences())
-                    }
-                    .first()
-            val latitude = prefs[PREF_LATITUDE]
-            val longitude = prefs[PREF_LONGITUDE]
-            val zoomLevel = prefs[PREF_ZOOM_LEVEL]
-            if (latitude != null && longitude != null && zoomLevel != null) {
-                val center = LatLong(latitude.e6ToDeg(), longitude.e6ToDeg())
-                Timber.i("Restoring map camera: $center, zoomLevel=$zoomLevel")
-                mapView.model.mapViewPosition.center = center
-                mapView.model.mapViewPosition.zoomLevel = zoomLevel.toByte()
+            if (mapViewPositionRepository.restoreTo(mapView.model.mapViewPosition)) {
+                Timber.i("Restored saved map view position.")
             } else {
-                Timber.i("No saved map camera position")
-                val mapDataStore = (mapRepository.state.value as? DynamicData.Loaded)?.data
-                if (mapDataStore != null) {
-                    mapView.model.mapViewPosition.center = mapDataStore.startPosition()
-                    mapView.model.mapViewPosition.zoomLevel = mapDataStore.startZoomLevel()
+                Timber.i("No saved map view position")
+                mapDataStore.value?.apply {
+                    mapView.model.mapViewPosition.center = startPosition()
+                    mapView.model.mapViewPosition.zoomLevel = startZoomLevel()
                 }
             }
         }
     }
 }
-
-private fun Int.e6ToDeg(): Double = this / 1_000_000.0
