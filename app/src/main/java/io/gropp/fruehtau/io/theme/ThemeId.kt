@@ -1,4 +1,7 @@
 package io.gropp.fruehtau.io.theme
 
 /** Identifies a theme. [packageName] is null for built-in themes. */
-data class ThemeId(val packageName: String?, val themeName: String)
+data class ThemeId(val packageName: String?, val themeName: String) {
+    val title: String
+        get() = if (packageName != null) "$packageName: $themeName" else themeName
+}

@@ -16,6 +16,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 
 @Singleton
 class SettingsRepository @Inject constructor(@param:ApplicationContext private val context: Context) {
@@ -54,6 +55,7 @@ class SettingsRepository @Inject constructor(@param:ApplicationContext private v
     }
 
     suspend fun setTheme(themeId: ThemeId?) {
+        Timber.i("Changing theme to $themeId")
         dataStore.edit { prefs ->
             if (themeId != null) {
                 if (themeId.packageName != null) {

@@ -6,6 +6,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.gropp.fruehtau.di.IoDispatcher
 import io.gropp.fruehtau.util.findFilesWithExtension
 import io.gropp.fruehtau.util.nameWithoutExt
+import io.gropp.fruehtau.util.toTitleCase
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
@@ -37,7 +38,7 @@ constructor(
     val availableThemes: StateFlow<List<ThemeId>> = _availableThemes.asStateFlow()
 
     private fun listThemes(): List<ThemeId> =
-        MapsforgeThemes.entries.map { ThemeId(null, it.name) } +
+        MapsforgeThemes.entries.map { ThemeId(null, it.name.toTitleCase()) } +
             findFilesWithExtension(baseDir, THEME_EXT).flatMap(::listThemesInFile)
 
     private fun listThemesInFile(themeFile: File): List<ThemeId> =
@@ -58,7 +59,7 @@ constructor(
             Timber.i("Loading theme: $themeId")
             val (packageName, themeName) = themeId
             if (packageName == null) {
-                MapsforgeThemes.valueOf(themeName)
+                getBuiltInTheme(themeName)
             } else {
                 val themeFile = File(baseDir, "$packageName.$THEME_EXT")
                 ZipRenderTheme(
@@ -89,3 +90,7 @@ constructor(
         private const val THEME_EXT = "zip"
     }
 }
+
+private fun getBuiltInTheme(themeName: String): XmlRenderTheme =
+    MapsforgeThemes.entries.firstOrNull { it.name.equals(themeName, ignoreCase = true) }
+        ?: throw IllegalArgumentException("No built-in theme with name $themeName")
