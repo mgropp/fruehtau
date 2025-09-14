@@ -1,4 +1,4 @@
-package io.gropp.fruehtau.ui.map
+package io.gropp.fruehtau.ui.toolbar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MapScaffold(
+fun ToolbarScaffold(
     topBarContent: @Composable (RowScope.() -> Unit)? = null,
     bottomBarContent: @Composable (RowScope.() -> Unit)? = null,
     content: @Composable () -> Unit,
@@ -29,11 +29,11 @@ fun MapScaffold(
         content()
 
         if (topBarContent != null) {
-            Toolbar(Alignment.TopCenter) { topBarContent() }
+            Toolbar(alignment = Alignment.Top) { topBarContent() }
         }
 
         if (bottomBarContent != null) {
-            Toolbar(Alignment.BottomCenter) { bottomBarContent() }
+            Toolbar(Alignment.Bottom) { bottomBarContent() }
         }
     }
 }
@@ -42,7 +42,7 @@ fun MapScaffold(
 @Composable
 private fun MapScaffoldPreview() {
     Box(Modifier.height(240.dp)) {
-        MapScaffold(
+        ToolbarScaffold(
             topBarContent = {
                 IconButton(onClick = {}) {
                     Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
