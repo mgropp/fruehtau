@@ -21,6 +21,8 @@ fun MenuScaffold(content: @Composable (onUiAction: (action: UiAction) -> Unit) -
             UiAction.ToggleMainMenu -> mainMenuVisible = !mainMenuVisible
 
             UiAction.HideMainMenu -> mainMenuVisible = false
+
+            else -> Unit
         }
     }
 
@@ -28,7 +30,7 @@ fun MenuScaffold(content: @Composable (onUiAction: (action: UiAction) -> Unit) -
 
     if (mainMenuVisible) {
         ModalBottomSheet(onDismissRequest = { onUiAction(UiAction.HideMainMenu) }, sheetState = sheetState) {
-            Menu(::onUiAction)
+            Menu(onUiAction = ::onUiAction)
         }
     }
 }

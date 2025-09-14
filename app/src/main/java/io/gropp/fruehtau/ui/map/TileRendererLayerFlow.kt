@@ -15,6 +15,7 @@ import org.mapsforge.map.model.DisplayModel
 import org.mapsforge.map.model.FrameBufferModel
 import org.mapsforge.map.model.MapViewPosition
 import org.mapsforge.map.rendertheme.XmlRenderTheme
+import timber.log.Timber
 
 fun getTileRendererLayerFlow(
     mapService: MapService,
@@ -28,6 +29,7 @@ fun getTileRendererLayerFlow(
         theme: XmlRenderTheme,
     ): TileRendererLayer =
         withContext(ioDispatcher) {
+            Timber.i("Creating TileRendererLayer")
             val displayModel = DisplayModel()
             createTileLayer(
                 context,

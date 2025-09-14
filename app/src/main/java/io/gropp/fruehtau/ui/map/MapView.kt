@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
@@ -63,6 +64,8 @@ fun MapView(
 @Composable
 private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapViewModel) {
     val mapView = remember { mutableStateOf<MapView?>(null) }
+    var previousTileRendererLayer by remember { mutableStateOf<TileRendererLayer?>(null) }
+
     AndroidView(
         factory = { context ->
             MapView(context).apply {
@@ -75,6 +78,13 @@ private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapV
         update = { view ->
             if (mapView.value !== view) {
                 mapView.value = view
+            }
+            if (previousTileRendererLayer != tileRendererLayer) {
+                previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
+                if (!view.layerManager.layers.contains(tileRendererLayer)) {
+                    view.layerManager.layers.add(tileRendererLayer)
+                }
+                previousTileRendererLayer = tileRendererLayer
             }
         },
     )
