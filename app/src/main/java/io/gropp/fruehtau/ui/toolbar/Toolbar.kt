@@ -1,4 +1,4 @@
-package io.gropp.fruehtau.ui.map
+package io.gropp.fruehtau.ui.toolbar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +11,8 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.Icon
@@ -27,34 +27,43 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun BoxScope.Toolbar(
-    alignment: Alignment,
+    alignment: Alignment.Vertical,
     modifier: Modifier = Modifier,
-    height: Dp = 56.dp,
+    height: Dp = 48.dp,
     alpha: Float = 0.5f,
     content: @Composable RowScope.() -> Unit = {},
 ) {
     Box(
-        modifier
-            .align(alignment)
-            .fillMaxWidth()
-            .height(height)
-            .padding(WindowInsets.navigationBars.asPaddingValues())
-            .background(Color.Black.copy(alpha = alpha))
+        modifier.align(alignment.center).fillMaxWidth().background(Color.Black.copy(alpha = alpha)).run {
+            if (alignment == Alignment.Top) {
+                val statusBars = WindowInsets.statusBars.asPaddingValues()
+                padding(top = statusBars.calculateTopPadding())
+            } else this
+        }
     ) {
         Row(
-            Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            Modifier.height(height).fillMaxSize().padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.Bottom,
             horizontalArrangement = Arrangement.SpaceBetween,
             content = content,
         )
     }
 }
 
+private val Alignment.Vertical.center: Alignment
+    get() =
+        when (this) {
+            Alignment.Top -> Alignment.TopCenter
+            Alignment.Center -> Alignment.Center
+            Alignment.Bottom -> Alignment.BottomCenter
+            else -> throw IllegalArgumentException("Invalid vertical alignment")
+        }
+
 @Preview
 @Composable
 private fun MapToolbarPreview() {
     Box(Modifier.height(120.dp).background(Brush.horizontalGradient(0f to Color.Blue, 1f to Color.Red))) {
-        Toolbar(Alignment.TopCenter) {
+        Toolbar(Alignment.Top) {
             Icon(imageVector = Icons.Default.Map, contentDescription = "Center on location", tint = Color.White)
         }
     }
