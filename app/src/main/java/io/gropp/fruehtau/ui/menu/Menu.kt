@@ -55,10 +55,15 @@ fun Menu(
     MenuControl(maps, themes, ::onUiActionLocal)
 }
 
+private enum class ExpandedMenuSection {
+    None,
+    Maps,
+    Themes,
+}
+
 @Composable
 private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, onUiAction: (action: UiAction) -> Unit) {
-    var mapsExpanded by remember { mutableStateOf(false) }
-    var themesExpanded by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(ExpandedMenuSection.None) }
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
@@ -70,8 +75,15 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
             ExpandableMenuSection(
                 icon = Icons.Default.Map,
                 title = "Maps",
-                expanded = mapsExpanded,
-                onToggle = { mapsExpanded = !mapsExpanded },
+                expanded = expanded == ExpandedMenuSection.Maps,
+                onToggle = {
+                    expanded =
+                        if (expanded == ExpandedMenuSection.Maps) {
+                            ExpandedMenuSection.None
+                        } else {
+                            ExpandedMenuSection.Maps
+                        }
+                },
             ) {
                 maps.keys.map { packageName -> MenuListItem(Icons.Outlined.Map, packageName) {} }
             }
@@ -81,8 +93,15 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
             ExpandableMenuSection(
                 icon = Icons.Default.Palette,
                 title = "Themes",
-                expanded = themesExpanded,
-                onToggle = { themesExpanded = !themesExpanded },
+                expanded = expanded == ExpandedMenuSection.Themes,
+                onToggle = {
+                    expanded =
+                        if (expanded == ExpandedMenuSection.Themes) {
+                            ExpandedMenuSection.None
+                        } else {
+                            ExpandedMenuSection.Themes
+                        }
+                },
             ) {
                 themes.map { id ->
                     MenuListItem(Icons.Outlined.Palette, id.title) {
