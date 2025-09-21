@@ -112,7 +112,13 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
             }
         }
 
-        item { MenuListItem(Icons.Default.Settings, title = "Settings", onClick = {}) }
+        item {
+            MenuListItem(
+                Icons.Default.Settings,
+                title = "Settings",
+                onClick = { onUiAction(UiAction.OpenSettingsScreen) },
+            )
+        }
     }
 }
 

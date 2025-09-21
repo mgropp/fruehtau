@@ -21,6 +21,7 @@ navigationFragmentKtx = "2.9.3"
 navigationUiKtx = "2.9.3"
 room = "2.8.0"
 timber = "5.0.1"
+voyager = "1.1.0-beta03"
 workRuntimeKtx = "2.10.4"
 
 [libraries]
@@ -63,7 +64,10 @@ mapsforge-map-android = { group = "org.mapsforge", name = "mapsforge-map-android
 mapsforge-poi-android = { group = "org.mapsforge", name = "mapsforge-poi-android", version.ref = "mapsforge" }
 mapsforge-themes = { group = "org.mapsforge", name = "mapsforge-themes", version.ref = "mapsforge" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-timber = { group = "com.jakewharton.timber", name = "timber", version.ref="timber" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+voyager-navigator = { group = "cafe.adriel.voyager", name = "voyager-navigator", version.ref = "voyager" }
+voyager-transitions = { group = "cafe.adriel.voyager", name = "voyager-transitions", version.ref = "voyager" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
