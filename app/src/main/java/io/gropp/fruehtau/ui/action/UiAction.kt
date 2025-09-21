@@ -7,5 +7,7 @@ sealed interface UiAction {
 
     object HideMainMenu : UiAction
 
+    object OpenSettingsScreen : UiAction
+
     @JvmInline value class SetMapTheme(val themeId: ThemeId) : UiAction
 }

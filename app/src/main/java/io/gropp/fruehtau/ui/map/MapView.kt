@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,8 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import io.gropp.fruehtau.ui.LoadingScreen
@@ -63,21 +60,21 @@ fun MapView(
 
 @Composable
 private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapViewModel) {
-    val mapView = remember { mutableStateOf<MapView?>(null) }
+    var mapView by remember(LocalLifecycleOwner.current) { mutableStateOf<MapView?>(null) }
     var previousTileRendererLayer by remember { mutableStateOf<TileRendererLayer?>(null) }
 
     AndroidView(
         factory = { context ->
             MapView(context).apply {
-                mapView.value = this
+                mapView = this
                 isClickable = true
                 layerManager.layers.add(tileRendererLayer)
                 viewModel.restoreMapViewPosition(this)
             }
         },
         update = { view ->
-            if (mapView.value !== view) {
-                mapView.value = view
+            if (mapView !== view) {
+                mapView = view
             }
             if (previousTileRendererLayer != tileRendererLayer) {
                 previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
@@ -87,16 +84,15 @@ private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapV
                 previousTileRendererLayer = tileRendererLayer
             }
         },
+        onRelease = { view ->
+            viewModel.saveMapViewPosition(view)
+            previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
+            if (view.layerManager.layers.contains(tileRendererLayer)) {
+                view.layerManager.layers.remove(tileRendererLayer)
+            }
+            mapView = null
+        },
     )
 
-    mapView.value?.let { LocationIndicator(it, viewModel) }
-
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    DisposableEffect(Unit) {
-        val obs = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_STOP) mapView.value?.let { viewModel.saveMapViewPosition(it) }
-        }
-        lifecycle.addObserver(obs)
-        onDispose { lifecycle.removeObserver(obs) }
-    }
+    mapView?.let { LocationIndicator(it, viewModel) }
 }

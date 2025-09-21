@@ -1,12 +1,17 @@
 package io.gropp.fruehtau.ui
 
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import io.gropp.fruehtau.ui.map.MapView
-import io.gropp.fruehtau.ui.menu.MenuScaffold
+import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
+import cafe.adriel.voyager.navigator.Navigator
+import cafe.adriel.voyager.transitions.SlideTransition
+import io.gropp.fruehtau.ui.screens.MapScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalVoyagerApi::class)
 @Composable
 fun Main() {
-    AppTheme { MenuScaffold { onUiAction -> MapView(onUiAction) } }
+    AppTheme {
+        Navigator(MapScreen()) { navigator ->
+            SlideTransition(navigator = navigator, disposeScreenAfterTransitionEnd = true)
+        }
+    }
 }

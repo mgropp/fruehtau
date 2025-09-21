@@ -95,6 +95,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
+
+    // Voyager
+    implementation(libs.voyager.navigator)
+    implementation(libs.voyager.transitions)
 }
 
 configurations.all { exclude(group = "com.intellij", module = "annotations") }
