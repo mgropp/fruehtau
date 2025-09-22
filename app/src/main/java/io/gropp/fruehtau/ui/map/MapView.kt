@@ -77,18 +77,22 @@ private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapV
                 mapView = view
             }
             if (previousTileRendererLayer != tileRendererLayer) {
-                previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
-                if (!view.layerManager.layers.contains(tileRendererLayer)) {
-                    view.layerManager.layers.add(tileRendererLayer)
+                // Remove all TileRendererLayer instances to ensure clean state
+                val layersToRemove = view.layerManager.layers.filterIsInstance<TileRendererLayer>()
+                layersToRemove.forEach { layer ->
+                    view.layerManager.layers.remove(layer)
                 }
+                // Add the current tile renderer layer
+                view.layerManager.layers.add(tileRendererLayer)
                 previousTileRendererLayer = tileRendererLayer
             }
         },
         onRelease = { view ->
             viewModel.saveMapViewPosition(view)
-            previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
-            if (view.layerManager.layers.contains(tileRendererLayer)) {
-                view.layerManager.layers.remove(tileRendererLayer)
+            // Clean up all TileRendererLayer instances
+            val layersToRemove = view.layerManager.layers.filterIsInstance<TileRendererLayer>()
+            layersToRemove.forEach { layer ->
+                view.layerManager.layers.remove(layer)
             }
             mapView = null
         },
