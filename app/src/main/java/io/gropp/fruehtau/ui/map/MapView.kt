@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,9 +17,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import io.gropp.fruehtau.ui.LoadingScreen
 import io.gropp.fruehtau.ui.action.UiAction
 import io.gropp.fruehtau.ui.toolbar.ToolbarScaffold
+import io.gropp.fruehtau.util.WhenLoaded
 import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.layer.renderer.TileRendererLayer
 
@@ -35,7 +34,6 @@ fun MapView(
             null,
         ),
 ) {
-    val tileRendererLayer by viewModel.tileRendererLayer.collectAsState(null)
     ToolbarScaffold(
         topBarContent = {
             IconButton(onClick = { onUiAction(UiAction.ToggleMainMenu) }) {
@@ -51,24 +49,24 @@ fun MapView(
             }
         }
     ) {
-        when (val renderer = tileRendererLayer) {
-            null -> LoadingScreen()
-            else -> MapViewControl(renderer, viewModel)
+        WhenLoaded(viewModel.tileRendererLayerProvider) { tileRendererLayerProvider ->
+            MapViewControl(tileRendererLayerProvider, viewModel)
         }
     }
 }
 
 @Composable
-private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapViewModel) {
+private fun MapViewControl(tileRendererLayerProvider: TileRendererLayerProvider, viewModel: MapViewModel) {
     var mapView by remember(LocalLifecycleOwner.current) { mutableStateOf<MapView?>(null) }
     var previousTileRendererLayer by remember { mutableStateOf<TileRendererLayer?>(null) }
 
     AndroidView(
         factory = { context ->
+            tileRendererLayerProvider.clear()
             MapView(context).apply {
                 mapView = this
                 isClickable = true
-                layerManager.layers.add(tileRendererLayer)
+                layerManager.layers.add(tileRendererLayerProvider.instance)
                 viewModel.restoreMapViewPosition(this)
             }
         },
@@ -76,22 +74,17 @@ private fun MapViewControl(tileRendererLayer: TileRendererLayer, viewModel: MapV
             if (mapView !== view) {
                 mapView = view
             }
-            if (previousTileRendererLayer != tileRendererLayer) {
-                previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
-                if (!view.layerManager.layers.contains(tileRendererLayer)) {
-                    view.layerManager.layers.add(tileRendererLayer)
+            tileRendererLayerProvider.instance
+                .takeIf { it != previousTileRendererLayer }
+                ?.let { tileRendererLayer ->
+                    previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
+                    if (!view.layerManager.layers.contains(tileRendererLayer)) {
+                        view.layerManager.layers.add(tileRendererLayer)
+                    }
+                    previousTileRendererLayer = tileRendererLayer
                 }
-                previousTileRendererLayer = tileRendererLayer
-            }
         },
-        onRelease = { view ->
-            viewModel.saveMapViewPosition(view)
-            previousTileRendererLayer?.let { view.layerManager.layers.remove(it) }
-            if (view.layerManager.layers.contains(tileRendererLayer)) {
-                view.layerManager.layers.remove(tileRendererLayer)
-            }
-            mapView = null
-        },
+        onRelease = { view -> viewModel.saveMapViewPosition(view) },
     )
 
     mapView?.let { LocationIndicator(it, viewModel) }

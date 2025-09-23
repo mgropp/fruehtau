@@ -36,8 +36,8 @@ constructor(
             initialValue = null,
         )
 
-    val tileRendererLayer =
-        getTileRendererLayerFlow(mapService, themeService, appContext, ioDispatcher)
+    val tileRendererLayerProvider =
+        TileRendererLayerProvider.createFlow(mapService, themeService, appContext)
             .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = null)
 
     fun saveMapViewPosition(mapView: MapView) {
