@@ -2,12 +2,12 @@ package io.gropp.fruehtau.ui.map
 
 import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import io.gropp.fruehtau.R
 import io.gropp.fruehtau.service.Location
+import io.gropp.fruehtau.service.LocationService
 import io.gropp.fruehtau.ui.location.WithLocation
 import io.gropp.fruehtau.ui.location.WithLocationPermission
 import io.gropp.fruehtau.util.createMarker
@@ -23,13 +23,13 @@ import org.mapsforge.map.layer.overlay.Circle
 import org.mapsforge.map.view.MapView
 
 @Composable
-fun LocationIndicator(mapView: MapView, viewModel: MapViewModel) {
+fun LocationIndicator(mapView: MapView, locationService: LocationService) {
     val context = LocalContext.current
     WithLocationPermission {
-        val indicator = remember { LocationIndicatorOverlay(context) }
-        LaunchedEffect(Unit) { mapView.layerManager.layers.add(indicator) }
+        val indicator =
+            remember(mapView) { LocationIndicatorOverlay(context).also { mapView.layerManager.layers.add(it) } }
 
-        WithLocation(viewModel.locationService) { location ->
+        WithLocation(locationService) { location ->
             if (location != null) {
                 indicator.setLocation(location)
                 indicator.isVisible = true

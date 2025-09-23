@@ -86,5 +86,5 @@ private fun MapViewControl(tileRendererLayerProvider: TileRendererLayerProvider,
         onRelease = { view -> viewModel.saveMapViewPosition(view) },
     )
 
-    mapView?.let { LocationIndicator(it, viewModel) }
+    mapView?.let { LocationIndicator(it, viewModel.locationService) }
 }
