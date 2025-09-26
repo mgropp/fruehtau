@@ -1,7 +1,8 @@
-package io.gropp.fruehtau.ui.menu
+package io.gropp.fruehtau.ui.common
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -11,6 +12,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -21,12 +23,21 @@ import io.gropp.fruehtau.ui.AppTheme
 fun MenuListItem(
     icon: ImageVector? = null,
     title: String,
+    leadingContent: @Composable (() -> Unit)? = null,
     trailingContent: @Composable (() -> Unit)? = null,
-    onClick: () -> Unit,
+    onClick: () -> Unit = {},
 ) {
     ListItem(
         headlineContent = { Text(title) },
-        leadingContent = icon?.let { { Icon(it, null) } },
+        leadingContent =
+            icon?.let { icon ->
+                {
+                    Row(verticalAlignment = CenterVertically) {
+                        leadingContent?.let { it() }
+                        Icon(icon, null)
+                    }
+                }
+            },
         trailingContent = trailingContent,
         modifier = Modifier.Companion.fillMaxWidth().clickable(onClick = onClick),
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),

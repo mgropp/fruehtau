@@ -11,6 +11,7 @@ import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import io.gropp.fruehtau.ui.action.UiAction
+import io.gropp.fruehtau.ui.common.AdjustStatusBar
 import io.gropp.fruehtau.ui.screens.SettingsScreen
 import timber.log.Timber
 
@@ -40,6 +41,7 @@ fun MenuScaffold(content: @Composable (onUiAction: (action: UiAction) -> Unit) -
 
     if (mainMenuVisible) {
         ModalBottomSheet(onDismissRequest = { onUiAction(UiAction.HideMainMenu) }, sheetState = sheetState) {
+            AdjustStatusBar(mapMode = true)
             Menu(onUiAction = ::onUiAction)
         }
     }

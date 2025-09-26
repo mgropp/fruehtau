@@ -26,10 +26,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import io.gropp.fruehtau.io.map.MapId
+import io.gropp.fruehtau.io.map.MapPackage
 import io.gropp.fruehtau.io.theme.ThemeId
 import io.gropp.fruehtau.ui.AppTheme
 import io.gropp.fruehtau.ui.action.UiAction
+import io.gropp.fruehtau.ui.common.ExpandableMenuSection
+import io.gropp.fruehtau.ui.common.MenuListItem
 
 @Composable
 fun Menu(
@@ -62,7 +64,7 @@ private enum class ExpandedMenuSection {
 }
 
 @Composable
-private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, onUiAction: (action: UiAction) -> Unit) {
+private fun MenuControl(maps: List<MapPackage>, themes: List<ThemeId>, onUiAction: (action: UiAction) -> Unit) {
     var expanded by remember { mutableStateOf(ExpandedMenuSection.None) }
 
     LazyColumn(
@@ -76,7 +78,7 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
                 icon = Icons.Default.Map,
                 title = "Maps",
                 expanded = expanded == ExpandedMenuSection.Maps,
-                onToggle = {
+                onToggleExpanded = {
                     expanded =
                         if (expanded == ExpandedMenuSection.Maps) {
                             ExpandedMenuSection.None
@@ -85,7 +87,7 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
                         }
                 },
             ) {
-                maps.keys.map { packageName -> MenuListItem(Icons.Outlined.Map, packageName) {} }
+                maps.map { MenuListItem(Icons.Outlined.Map, it.id.value) {} }
             }
         }
 
@@ -94,7 +96,7 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
                 icon = Icons.Default.Palette,
                 title = "Themes",
                 expanded = expanded == ExpandedMenuSection.Themes,
-                onToggle = {
+                onToggleExpanded = {
                     expanded =
                         if (expanded == ExpandedMenuSection.Themes) {
                             ExpandedMenuSection.None
@@ -125,11 +127,11 @@ private fun MenuControl(maps: Map<String, List<MapId>>, themes: List<ThemeId>, o
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun MenuPreviewLight() {
-    AppTheme { MenuControl(emptyMap(), emptyList()) {} }
+    AppTheme { MenuControl(emptyList(), emptyList()) {} }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun MenuPreviewDark() {
-    AppTheme { MenuControl(emptyMap(), emptyList()) {} }
+    AppTheme { MenuControl(emptyList(), emptyList()) {} }
 }

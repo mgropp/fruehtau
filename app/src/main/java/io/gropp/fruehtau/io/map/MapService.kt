@@ -10,7 +10,7 @@ import org.mapsforge.map.datastore.MapDataStore
 @Singleton
 class MapService @Inject constructor(mapRepository: MapRepository, settingsRepository: SettingsRepository) {
     val mapDataStore: Flow<MapDataStore?> =
-        combine(mapRepository.availableMaps, settingsRepository.mapId) { maps, id ->
+        combine(mapRepository.availableMaps, settingsRepository.mapPackageId) { maps, id ->
             mapRepository.loadMapOrDefault(id)
         }
 }

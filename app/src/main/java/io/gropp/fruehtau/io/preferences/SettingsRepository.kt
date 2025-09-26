@@ -2,13 +2,14 @@ package io.gropp.fruehtau.io.preferences
 
 import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.gropp.fruehtau.io.map.MapId
+import io.gropp.fruehtau.io.map.MapPackageId
 import io.gropp.fruehtau.io.theme.ThemeId
 import java.io.IOException
 import javax.inject.Inject
@@ -34,69 +35,77 @@ class SettingsRepository @Inject constructor(@param:ApplicationContext private v
             }
             .map { it.toSettings() }
 
-    val mapId = settings.map { it.mapId }
+    val mapPackageId = settings.map { it.mapPackageId }
 
-    val themeId = settings.map { it.themeId }
+    val themeIds = settings.map { it.themeIds }
 
-    suspend fun setMap(mapId: MapId?) {
+    suspend fun setMap(mapId: MapPackageId?) {
         dataStore.edit { prefs ->
             if (mapId != null) {
-                prefs[PREF_MAP_PACKAGE] = mapId.packageName
-                if (mapId.mapName != null) {
-                    prefs[PREF_MAP_NAME] = mapId.mapName
-                } else {
-                    prefs.remove(PREF_MAP_NAME)
-                }
+                prefs[PREF_MAP_PACKAGE] = mapId.value
             } else {
                 prefs.remove(PREF_MAP_PACKAGE)
-                prefs.remove(PREF_MAP_NAME)
             }
         }
     }
 
-    suspend fun setTheme(themeId: ThemeId?) {
+    suspend fun setTheme(mapPackageId: MapPackageId?, themeId: ThemeId?) {
         Timber.i("Changing theme to $themeId")
         dataStore.edit { prefs ->
-            if (themeId != null) {
-                if (themeId.packageName != null) {
-                    prefs[PREF_THEME_PACKAGE] = themeId.packageName
-                } else {
-                    prefs.remove(PREF_THEME_PACKAGE)
-                }
-                prefs[PREF_THEME_NAME] = themeId.themeName
-            } else {
-                prefs.remove(PREF_THEME_PACKAGE)
-                prefs.remove(PREF_THEME_NAME)
+            prefs.setTheme(mapPackageId, themeId)
+            if (mapPackageId != null) {
+                prefs.setTheme(null, themeId)
             }
         }
     }
 
-    private fun Preferences.toSettings(): Settings {
-        val mapPackage = this[PREF_MAP_PACKAGE]
-        val mapName = this[PREF_MAP_NAME]
-        val themePackage = this[PREF_THEME_PACKAGE]
-        val themeName = this[PREF_THEME_NAME]
+    private fun MutablePreferences.setTheme(mapPackageId: MapPackageId?, themeId: ThemeId?) {
+        if (themeId != null) {
+            if (themeId.packageName != null) {
+                this[getThemePackageKey(mapPackageId)] = themeId.packageName
+            } else {
+                remove(getThemePackageKey(mapPackageId))
+            }
+            this[getThemeNameKey(mapPackageId)] = themeId.themeName
+        } else {
+            remove(getThemePackageKey(mapPackageId))
+            remove(getThemeNameKey(mapPackageId))
+        }
+    }
 
-        return Settings(
-            mapId =
-                if (mapPackage != null) {
-                    MapId(mapPackage, mapName)
-                } else {
-                    null
-                },
-            themeId =
-                if (themeName != null) {
-                    ThemeId(themePackage, themeName)
-                } else {
-                    null
-                },
-        )
+    private fun Preferences.toSettings() = Settings(mapPackageId = getMapPackageId(), themeIds = getThemeIds())
+
+    private fun Preferences.getMapPackageId() = this[PREF_MAP_PACKAGE]?.let { MapPackageId(it) }
+
+    private fun Preferences.getThemeIds(): Map<MapPackageId?, ThemeId> {
+        val mapPackageIds = asMap().keys.filter(::isThemeNameKey).map(::getMapPackageIdFromThemeNameKey).toSet()
+
+        return mapPackageIds
+            .mapNotNull { mapPackageId ->
+                this[getThemeNameKey(mapPackageId)]?.let { themeName ->
+                    mapPackageId to ThemeId(this[getThemePackageKey(mapPackageId)], themeName)
+                }
+            }
+            .toMap()
     }
 
     companion object {
         private val PREF_MAP_PACKAGE = stringPreferencesKey("map_package")
-        private val PREF_MAP_NAME = stringPreferencesKey("map_name")
-        private val PREF_THEME_PACKAGE = stringPreferencesKey("theme_package")
-        private val PREF_THEME_NAME = stringPreferencesKey("theme_name")
+        private const val PREF_THEME_PACKAGE_PREFIX = "theme_package:"
+        private const val PREF_THEME_NAME_PREFIX = "theme_name:"
+
+        private fun isThemeNameKey(key: Preferences.Key<*>) = key.name.startsWith(PREF_THEME_NAME_PREFIX)
+
+        private fun getMapPackageIdFromThemeNameKey(key: Preferences.Key<*>) =
+            key.name.removePrefixOrNull(PREF_THEME_NAME_PREFIX)?.takeIf(String::isNotEmpty)?.let(::MapPackageId)
+
+        private fun getThemePackageKey(mapPackageId: MapPackageId?) =
+            stringPreferencesKey("$PREF_THEME_PACKAGE_PREFIX${mapPackageId?.value ?: ""}")
+
+        private fun getThemeNameKey(mapPackageId: MapPackageId?) =
+            stringPreferencesKey("$PREF_THEME_NAME_PREFIX${mapPackageId?.value ?: ""}")
+
+        private fun String.removePrefixOrNull(prefix: String): String? =
+            if (startsWith(prefix)) substring(prefix.length) else null
     }
 }
