@@ -1,5 +1,6 @@
 package io.gropp.fruehtau.ui
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,8 +32,14 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String = "Loading") {
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
-private fun LoadingScreenPreview() {
-    Box { LoadingScreen() }
+private fun LoadingScreenPreviewLight() {
+    AppTheme { Box { LoadingScreen() } }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun LoadingScreenPreviewDark() {
+    AppTheme { Box { LoadingScreen() } }
 }

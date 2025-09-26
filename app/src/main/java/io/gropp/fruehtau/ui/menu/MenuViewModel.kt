@@ -3,7 +3,7 @@ package io.gropp.fruehtau.ui.menu
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.gropp.fruehtau.io.map.MapId
+import io.gropp.fruehtau.io.map.MapPackageId
 import io.gropp.fruehtau.io.map.MapRepository
 import io.gropp.fruehtau.io.preferences.SettingsRepository
 import io.gropp.fruehtau.io.theme.ThemeId
@@ -25,7 +25,7 @@ constructor(
         mapRepository.availableMaps.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
-            initialValue = emptyMap(),
+            initialValue = emptyList(),
         )
 
     val availableThemes =
@@ -35,11 +35,18 @@ constructor(
             initialValue = emptyList(),
         )
 
-    fun setMap(mapId: MapId?) {
+    private val mapPackageId =
+        settingsRepository.mapPackageId.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
+            initialValue = null,
+        )
+
+    fun setMap(mapId: MapPackageId?) {
         viewModelScope.launch { settingsRepository.setMap(mapId) }
     }
 
     fun setTheme(themeId: ThemeId?) {
-        viewModelScope.launch { settingsRepository.setTheme(themeId) }
+        viewModelScope.launch { settingsRepository.setTheme(mapPackageId.value, themeId) }
     }
 }

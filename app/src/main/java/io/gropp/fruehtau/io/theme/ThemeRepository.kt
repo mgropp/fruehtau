@@ -57,13 +57,12 @@ constructor(
     private suspend fun loadTheme(themeId: ThemeId): XmlRenderTheme =
         withContext(ioDispatcher) {
             Timber.i("Loading theme: $themeId")
-            val (packageName, themeName) = themeId
-            if (packageName == null) {
-                getBuiltInTheme(themeName)
+            val themeFile = getThemeFile(themeId)
+            if (themeFile == null) {
+                getBuiltInTheme(themeId.themeName)
             } else {
-                val themeFile = File(baseDir, "$packageName.$THEME_EXT")
                 ZipRenderTheme(
-                    themeName,
+                    themeId.themeName,
                     ZipXmlThemeResourceProvider(ZipInputStream(BufferedInputStream(themeFile.inputStream()))),
                 )
             }
@@ -84,6 +83,30 @@ constructor(
             Timber.i("Import complete, reloading themes")
             updateAvailableThemes()
         }
+    }
+
+    fun deleteThemePackage(packageName: String) {
+        val themeFile = getThemeFile(packageName)
+        if (themeFile.exists()) {
+            if (themeFile.delete()) {
+                Timber.i("Deleted theme package: $packageName")
+            } else {
+                Timber.e("Failed to delete theme package: $packageName")
+            }
+            updateAvailableThemes()
+        } else {
+            Timber.w("No theme package found to delete with name: $packageName")
+        }
+    }
+
+    private fun getThemeFile(themeId: ThemeId): File? = themeId.packageName?.let(::getThemeFile)
+
+    private fun getThemeFile(packageName: String): File {
+        val themeFile = File(baseDir, "$packageName.$THEME_EXT")
+        if (!themeFile.exists()) {
+            throw IllegalArgumentException("No theme package with name $packageName")
+        }
+        return themeFile
     }
 
     companion object {

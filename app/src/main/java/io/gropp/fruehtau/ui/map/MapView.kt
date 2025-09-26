@@ -17,6 +17,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import io.gropp.fruehtau.ui.action.UiAction
+import io.gropp.fruehtau.ui.common.AdjustStatusBar
 import io.gropp.fruehtau.ui.toolbar.ToolbarScaffold
 import io.gropp.fruehtau.util.WhenLoaded
 import org.mapsforge.map.android.view.MapView
@@ -25,13 +26,7 @@ import org.mapsforge.map.layer.renderer.TileRendererLayer
 @Composable
 fun MapView(
     onUiAction: (action: UiAction) -> Unit = {},
-    viewModel: MapViewModel =
-        hiltViewModel(
-            checkNotNull(LocalViewModelStoreOwner.current) {
-                "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-            },
-            null,
-        ),
+    viewModel: MapViewModel = hiltViewModel(checkNotNull(LocalViewModelStoreOwner.current), null),
 ) {
     ToolbarScaffold(
         topBarContent = {
@@ -49,6 +44,7 @@ fun MapView(
         }
     ) {
         WhenLoaded(viewModel.tileRendererLayerProvider) { tileRendererLayerProvider ->
+            AdjustStatusBar(mapMode = true)
             MapViewControl(tileRendererLayerProvider, viewModel)
         }
     }

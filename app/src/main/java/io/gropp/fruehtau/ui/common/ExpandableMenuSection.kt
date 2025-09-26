@@ -1,4 +1,4 @@
-package io.gropp.fruehtau.ui.menu
+package io.gropp.fruehtau.ui.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.EmojiNature
@@ -21,7 +20,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import io.gropp.fruehtau.ui.AppTheme
 
 @Composable
@@ -29,13 +27,15 @@ fun ExpandableMenuSection(
     icon: ImageVector? = null,
     title: String,
     expanded: Boolean,
-    onToggle: () -> Unit,
+    onToggleExpanded: () -> Unit,
+    leadingContent: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
         MenuListItem(
             icon = icon,
             title = title,
+            leadingContent = leadingContent,
             trailingContent = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -44,15 +44,11 @@ fun ExpandableMenuSection(
                     )
                 }
             },
-            onClick = onToggle,
+            onClick = onToggleExpanded,
         )
+
         AnimatedVisibility(visible = expanded) {
-            Column(
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
-            ) {
+            Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)) {
                 content()
             }
         }
@@ -67,7 +63,7 @@ private fun ExpandedMenuSectionPreview() {
             icon = Icons.Default.SentimentVerySatisfied,
             title = "Expandable Section",
             expanded = true,
-            onToggle = {},
+            onToggleExpanded = {},
         ) {
             Surface(color = MaterialTheme.colorScheme.surfaceVariant) {
                 Column {
@@ -87,7 +83,7 @@ private fun CollapsedMenuSectionPreview() {
             icon = Icons.Default.SentimentVerySatisfied,
             title = "Expandable Section",
             expanded = false,
-            onToggle = {},
+            onToggleExpanded = {},
         ) {}
     }
 }

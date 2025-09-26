@@ -35,41 +35,31 @@ constructor(
         get() = File(appContext.filesDir, "maps").also { it.mkdirs() }
 
     private val _availableMaps = MutableStateFlow(listMaps())
-    val availableMaps: StateFlow<Map<String, List<MapId>>> = _availableMaps.asStateFlow()
+    val availableMaps: StateFlow<List<MapPackage>> = _availableMaps.asStateFlow()
 
-    private fun listMaps(): Map<String, List<MapId>> =
-        findDirectories(baseDir).associate { dir ->
-            dir.name to findFilesWithExtensionRec(dir, MAP_EXT).map { MapId(dir.name, it.nameWithoutExtension) }
-        }
+    private fun listMaps(): List<MapPackage> = findMapPackages()
 
     private fun updateAvailableMaps() {
         _availableMaps.value = listMaps()
     }
 
-    suspend fun loadMapOrDefault(mapId: MapId?): MapDataStore? = mapId?.let { loadMap(it) } ?: loadDefaultMap()
+    suspend fun loadMapOrDefault(mapPackageId: MapPackageId?): MapDataStore? =
+        mapPackageId?.let(::loadMap) ?: loadDefaultMap()
 
-    private fun loadMap(mapId: MapId): MapDataStore {
-        Timber.i("Loading map: $mapId")
-        val (packageName, mapName) = mapId
-        val dir = File(baseDir, packageName)
-
-        return if (mapId.mapName != null) {
-            val file = File(dir, "${mapName}.$MAP_EXT")
-            loadMapFile(file)
-        } else {
-            val files = findFilesWithExtensionRec(dir, MAP_EXT)
-            MultiMapDataStore().apply {
-                files.forEachIndexed { index, file ->
-                    val mapFile = loadMapFile(file)
-                    addMapDataStore(mapFile, index == 0, index == 0)
-                }
+    private fun loadMap(mapPackageId: MapPackageId): MapDataStore {
+        Timber.i("Loading map package: $mapPackageId")
+        val files = findMapFilesInPackage(mapPackageId)
+        return MultiMapDataStore().apply {
+            files.forEachIndexed { index, file ->
+                val mapFile = loadMapFile(file)
+                addMapDataStore(mapFile, index == 0, index == 0)
             }
         }
     }
 
     private suspend fun loadDefaultMap(): MapDataStore? {
         Timber.i("Loading default map")
-        return listMaps().keys.firstOrNull()?.let { loadMap(MapId(it, null)) }
+        return listMaps().firstOrNull()?.let { loadMap(it.id) }
             ?: run {
                 Timber.i("No maps found, downloading test map")
                 downloadTestMap()
@@ -94,6 +84,23 @@ constructor(
         }
     }
 
+    suspend fun deleteMap(mapPackageId: MapPackageId, mapId: String) {
+        withContext(ioDispatcher) {
+            Timber.i("Deleting map $mapId from package $mapPackageId")
+            val mapFile = getMapFile(mapPackageId, mapId)
+            if (mapFile.exists()) {
+                if (mapFile.delete()) {
+                    Timber.i("Deleted map file: ${mapFile.absolutePath}")
+                } else {
+                    Timber.e("Failed to delete map file: ${mapFile.absolutePath}")
+                }
+            } else {
+                Timber.w("Map file does not exist: ${mapFile.absolutePath}")
+            }
+            updateAvailableMaps()
+        }
+    }
+
     private suspend fun downloadTestMap() {
         downloadService.enqueueDownload(
             "https://ftp.gwdg.de/pub/misc/openstreetmap/openandromaps/mapsV5/germany/Ruegen.zip",
@@ -101,6 +108,20 @@ constructor(
             "test",
         )
     }
+
+    private fun getMapPackageDirectory(mapPackageId: MapPackageId): File = File(baseDir, mapPackageId.value)
+
+    private fun getMapFile(mapPackageId: MapPackageId, mapId: String): File =
+        File(getMapPackageDirectory(mapPackageId), "$mapId.$MAP_EXT")
+
+    private fun findMapFilesInPackage(mapPackageId: MapPackageId): List<File> =
+        findFilesWithExtensionRec(getMapPackageDirectory(mapPackageId), MAP_EXT)
+
+    private fun findMapPackages(): List<MapPackage> =
+        findDirectories(baseDir).map { dir ->
+            val mapPackageId = MapPackageId(dir.name)
+            MapPackage(mapPackageId, findMapFilesInPackage(mapPackageId).map { it.nameWithoutExtension })
+        }
 
     companion object {
         private const val MAP_EXT = "map"
