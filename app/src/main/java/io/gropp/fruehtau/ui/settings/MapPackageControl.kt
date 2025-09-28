@@ -11,14 +11,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.outlined.Map
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +35,8 @@ import io.gropp.fruehtau.ui.common.MenuListItem
 
 @Composable
 fun MapPackageControl(mapPackage: MapPackage, active: Boolean, onSetActive: () -> Unit, onDeleteMap: (String) -> Unit) {
+    var confirmDeletionOfMap by remember { mutableStateOf<String?>(null) }
+
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -47,7 +54,7 @@ fun MapPackageControl(mapPackage: MapPackage, active: Boolean, onSetActive: () -
                         icon = Icons.Outlined.Map,
                         title = mapId,
                         trailingContent = {
-                            IconButton(onClick = { onDeleteMap(mapId) }) {
+                            IconButton(onClick = { confirmDeletionOfMap = mapId }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete map")
                             }
                         },
@@ -55,6 +62,25 @@ fun MapPackageControl(mapPackage: MapPackage, active: Boolean, onSetActive: () -
                 }
             }
         }
+    }
+
+    confirmDeletionOfMap?.let { mapId ->
+        AlertDialog(
+            onDismissRequest = { confirmDeletionOfMap = null },
+            title = { Text("Delete Map") },
+            text = { Text("Are you sure you want to delete this map? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteMap(mapId)
+                        confirmDeletionOfMap = null
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = { TextButton(onClick = { confirmDeletionOfMap = null }) { Text("Cancel") } },
+        )
     }
 }
 
