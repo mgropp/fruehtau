@@ -17,7 +17,7 @@ constructor(
     @param:ApplicationContext private val appContext: Context,
     private val pendingDownloadRepository: PendingDownloadRepository,
 ) {
-    suspend fun enqueueDownload(url: String, purpose: DownloadPurpose, target: String): Long {
+    suspend fun enqueueDownload(url: String, purpose: DownloadPurpose, target: String?): Long {
         val uri = url.toUri()
         val request =
             DownloadManager.Request(url.toUri())
@@ -34,7 +34,7 @@ constructor(
 
         val dm = appContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val id = dm.enqueue(request)
-        pendingDownloadRepository.add(id, purpose, target)
+        pendingDownloadRepository.add(id, purpose, url, target)
         Timber.i("Enqueued download of $url with id $id")
         return id
     }
@@ -43,6 +43,7 @@ constructor(
         get() =
             when (this) {
                 DownloadPurpose.MAP -> "Downloading map"
+                DownloadPurpose.WORLD_MAP -> "Downloading world map"
                 DownloadPurpose.THEME -> "Downloading theme"
             }
 }

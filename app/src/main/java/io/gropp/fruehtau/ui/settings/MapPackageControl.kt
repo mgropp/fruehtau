@@ -28,13 +28,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.gropp.fruehtau.io.map.MapPackage
 import io.gropp.fruehtau.io.map.MapPackageId
 import io.gropp.fruehtau.ui.AppTheme
 import io.gropp.fruehtau.ui.common.MenuListItem
 
 @Composable
-fun MapPackageControl(mapPackage: MapPackage, active: Boolean, onSetActive: () -> Unit, onDeleteMap: (String) -> Unit) {
+fun MapPackageControl(
+    mapPackageId: MapPackageId,
+    maps: List<String>,
+    active: Boolean,
+    onSetActive: () -> Unit,
+    onDeleteMap: (String) -> Unit,
+) {
     var confirmDeletionOfMap by remember { mutableStateOf<String?>(null) }
 
     ElevatedCard(
@@ -45,10 +50,10 @@ fun MapPackageControl(mapPackage: MapPackage, active: Boolean, onSetActive: () -
         Column {
             Row(modifier = Modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
                 RadioButton(selected = active, onClick = onSetActive, modifier = Modifier.padding(top = 4.dp))
-                MenuListItem(icon = Icons.Filled.Map, title = mapPackage.id.value, onClick = onSetActive)
+                MenuListItem(icon = Icons.Filled.Map, title = mapPackageId.value, onClick = onSetActive)
             }
 
-            mapPackage.maps.forEach { mapId ->
+            maps.forEach { mapId ->
                 Row(modifier = Modifier.background(MaterialTheme.colorScheme.surfaceBright)) {
                     MenuListItem(
                         icon = Icons.Outlined.Map,
@@ -91,7 +96,8 @@ private fun MapPackageControlPreview() {
         MapPackageControl(
             active = true,
             onSetActive = {},
-            mapPackage = MapPackage(id = MapPackageId("OpenAndroMaps"), maps = listOf("Bayern", "Berlin")),
+            mapPackageId = MapPackageId("OpenAndroMaps"),
+            maps = listOf("Bayern", "Berlin"),
             onDeleteMap = {},
         )
     }

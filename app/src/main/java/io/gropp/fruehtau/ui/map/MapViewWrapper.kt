@@ -11,7 +11,7 @@ import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.layer.renderer.TileRendererLayer
 
 @Composable
-fun MapViewContainer(tileRendererLayerProvider: TileRendererLayerProvider, viewModel: MapViewModel) {
+fun MapViewWrapper(tileRendererLayerProvider: TileRendererLayerProvider, viewModel: MapViewModel) {
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var previousTileRendererLayer by remember { mutableStateOf<TileRendererLayer?>(null) }
 

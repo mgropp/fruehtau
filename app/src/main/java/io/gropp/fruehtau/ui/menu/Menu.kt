@@ -87,7 +87,7 @@ private fun MenuControl(maps: List<MapPackage>, themes: List<ThemeId>, onUiActio
                         }
                 },
             ) {
-                maps.map { MenuListItem(Icons.Outlined.Map, it.id.value) {} }
+                maps.forEach { map -> map.id?.value?.let { title -> MenuListItem(Icons.Outlined.Map, title) {} } }
             }
         }
 

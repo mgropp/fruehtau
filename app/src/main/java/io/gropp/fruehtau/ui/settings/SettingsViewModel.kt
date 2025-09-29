@@ -31,7 +31,7 @@ constructor(
 
     val activeTheme =
         combine(settingsRepository.mapPackageId, settingsRepository.themeIds) { mapPackageId, themeIds ->
-                mapPackageId?.let { themeIds?.get(it) }
+                themeIds?.get(mapPackageId)
             }
             .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = null)
 

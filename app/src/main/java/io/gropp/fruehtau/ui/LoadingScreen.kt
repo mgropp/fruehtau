@@ -26,6 +26,7 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String = "Loading") {
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                color = MaterialTheme.colorScheme.onSurface,
             )
             LinearProgressIndicator(modifier = Modifier.width(80.dp))
         }
@@ -35,11 +36,11 @@ fun LoadingScreen(modifier: Modifier = Modifier, text: String = "Loading") {
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 @Composable
 private fun LoadingScreenPreviewLight() {
-    AppTheme { Box { LoadingScreen() } }
+    AppTheme { LoadingScreen() }
 }
 
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun LoadingScreenPreviewDark() {
-    AppTheme { Box { LoadingScreen() } }
+    AppTheme { LoadingScreen() }
 }

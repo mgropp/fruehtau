@@ -72,8 +72,18 @@ constructor(
                 }
 
                 when (downloadInfo.purpose) {
-                    DownloadPurpose.MAP -> mapRepository.importFromUri(uri, downloadInfo.target)
-                    DownloadPurpose.THEME -> themeRepository.importFromUri(uri, downloadInfo.target)
+                    DownloadPurpose.MAP ->
+                        mapRepository.importFromUri(
+                            uri,
+                            downloadInfo.source,
+                            checkNotNull(downloadInfo.target) { "Missing download target info" },
+                        )
+                    DownloadPurpose.WORLD_MAP -> mapRepository.importWorldMapFromUri(uri)
+                    DownloadPurpose.THEME ->
+                        themeRepository.importFromUri(
+                            uri,
+                            checkNotNull(downloadInfo.target) { "Missing download target info" },
+                        )
                 }
             } finally {
                 dm.remove(downloadId)

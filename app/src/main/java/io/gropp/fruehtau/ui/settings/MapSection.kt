@@ -25,12 +25,15 @@ fun MapSection(
             Text("No map packages installed.")
         } else {
             availableMapPackages.forEach { mapPackage ->
-                MapPackageControl(
-                    active = mapPackage.id == activeMapPackage,
-                    onSetActive = { onSetActiveMapPackage(mapPackage.id) },
-                    mapPackage = mapPackage,
-                    onDeleteMap = { mapId -> onDeleteMap(mapPackage.id, mapId) },
-                )
+                mapPackage.id?.let { mapPackageId ->
+                    MapPackageControl(
+                        active = mapPackage.id == activeMapPackage,
+                        onSetActive = { onSetActiveMapPackage(mapPackage.id) },
+                        mapPackageId = mapPackageId,
+                        maps = mapPackage.maps,
+                        onDeleteMap = { mapId -> onDeleteMap(mapPackage.id, mapId) },
+                    )
+                }
             }
         }
     }

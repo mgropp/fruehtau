@@ -6,8 +6,8 @@ import javax.inject.Singleton
 
 @Singleton
 class PendingDownloadRepository @Inject constructor(private val dao: PendingDownloadDao) {
-    suspend fun add(id: Long, purpose: DownloadPurpose, target: String) =
-        dao.insert(PendingDownloadEntity(id = id, purpose = purpose, target = target))
+    suspend fun add(id: Long, purpose: DownloadPurpose, source: String, target: String?) =
+        dao.insert(PendingDownloadEntity(id = id, purpose = purpose, source = source, target = target))
 
     suspend fun get(id: Long): PendingDownloadEntity? = dao.getById(id)
 
