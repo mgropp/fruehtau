@@ -12,10 +12,14 @@ import io.gropp.fruehtau.io.theme.ThemeService
 import io.gropp.fruehtau.service.LocationService
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.mapsforge.map.view.MapView
+import org.mapsforge.core.model.LatLong
+import org.mapsforge.map.android.view.MapView
 import timber.log.Timber
 
 @HiltViewModel
@@ -40,6 +44,10 @@ constructor(
         TileRendererLayerProvider.createFlow(mapService, themeService, appContext)
             .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = null)
 
+    private val _mapCommands =
+        MutableSharedFlow<MapCommand>(extraBufferCapacity = 4, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val mapCommands = _mapCommands.asSharedFlow()
+
     fun saveMapViewPosition(mapView: MapView) {
         viewModelScope.launch(ioDispatcher) { mapViewPositionRepository.save(mapView.model.mapViewPosition) }
     }
@@ -57,5 +65,13 @@ constructor(
                 }
             }
         }
+    }
+
+    fun centerMapOnCurrentLocation() {
+        locationService.location.value?.let { setMapPosition(it.toLatLong()) }
+    }
+
+    fun setMapPosition(position: LatLong) {
+        _mapCommands.tryEmit(MapCommand.SetMapPosition(position))
     }
 }
