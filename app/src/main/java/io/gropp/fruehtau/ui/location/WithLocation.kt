@@ -7,9 +7,9 @@ import io.gropp.fruehtau.service.Location
 import io.gropp.fruehtau.service.LocationService
 
 @Composable
-fun WithLocation(locationService: LocationService, content: @Composable (location: Location?) -> Unit) {
+fun LocationService.WithLocation(content: @Composable (location: Location?) -> Unit) {
     WithLocationPermission {
-        val location by locationService.location.collectAsState(null)
+        val location by location.collectAsState(null)
         content(location)
     }
 }

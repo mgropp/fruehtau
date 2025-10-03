@@ -29,7 +29,7 @@ fun LocationIndicator(mapView: MapView, locationService: LocationService) {
         val indicator =
             remember(mapView) { LocationIndicatorOverlay(context).also { mapView.layerManager.layers.add(it) } }
 
-        WithLocation(locationService) { location ->
+        locationService.WithLocation { location ->
             if (location != null) {
                 indicator.setLocation(location)
                 indicator.isVisible = true

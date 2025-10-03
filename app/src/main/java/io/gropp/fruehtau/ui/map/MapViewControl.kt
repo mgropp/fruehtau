@@ -13,6 +13,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import io.gropp.fruehtau.ui.action.UiAction
 import io.gropp.fruehtau.ui.common.AdjustStatusBar
+import io.gropp.fruehtau.ui.info.ExtraInfo
 import io.gropp.fruehtau.ui.toolbar.ToolbarScaffold
 import io.gropp.fruehtau.util.WhenLoaded
 
@@ -26,6 +27,8 @@ fun MapViewControl(
             IconButton(onClick = { onUiAction(UiAction.ToggleMainMenu) }) {
                 Icon(imageVector = Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
             }
+            Spacer(Modifier.weight(1f))
+            ExtraInfo(viewModel.locationService)
             Spacer(Modifier.weight(1f))
             IconButton(onClick = { viewModel.centerMapOnCurrentLocation() }) {
                 Icon(
