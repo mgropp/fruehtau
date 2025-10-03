@@ -14,7 +14,8 @@ import org.mapsforge.map.model.FrameBufferModel
 import org.mapsforge.map.model.MapViewPosition
 import org.mapsforge.map.rendertheme.XmlRenderTheme
 
-class TileRendererLayerProvider(
+class TileRendererLayerProvider
+private constructor(
     private val context: Context,
     private val mapDataStore: MapDataStore,
     private val theme: XmlRenderTheme,
