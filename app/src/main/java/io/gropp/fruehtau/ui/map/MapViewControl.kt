@@ -24,7 +24,7 @@ import org.mapsforge.map.android.view.MapView
 import org.mapsforge.map.layer.renderer.TileRendererLayer
 
 @Composable
-fun MapView(
+fun MapViewControl(
     onUiAction: (action: UiAction) -> Unit = {},
     viewModel: MapViewModel = hiltViewModel(checkNotNull(LocalViewModelStoreOwner.current), null),
 ) {
@@ -45,13 +45,13 @@ fun MapView(
     ) {
         WhenLoaded(viewModel.tileRendererLayerProvider) { tileRendererLayerProvider ->
             AdjustStatusBar(mapMode = true)
-            MapViewControl(tileRendererLayerProvider, viewModel)
+            MapViewContainer(tileRendererLayerProvider, viewModel)
         }
     }
 }
 
 @Composable
-private fun MapViewControl(tileRendererLayerProvider: TileRendererLayerProvider, viewModel: MapViewModel) {
+private fun MapViewContainer(tileRendererLayerProvider: TileRendererLayerProvider, viewModel: MapViewModel) {
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var previousTileRendererLayer by remember { mutableStateOf<TileRendererLayer?>(null) }
 
