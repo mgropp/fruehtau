@@ -11,11 +11,13 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.gropp.fruehtau.io.map.MapPackageId
 import io.gropp.fruehtau.io.theme.ThemeId
+import io.gropp.fruehtau.ui.info.InfoDisplayMode
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
@@ -35,9 +37,11 @@ class SettingsRepository @Inject constructor(@param:ApplicationContext private v
             }
             .map { it.toSettings() }
 
-    val mapPackageId = settings.map { it.mapPackageId }
+    val mapPackage = settings.map { it.mapPackage }.distinctUntilChanged()
 
-    val themeIds = settings.map { it.themeIds }
+    val mapThemes = settings.map { it.mapThemes }.distinctUntilChanged()
+
+    val infoDisplayMode = settings.map { it.infoDisplayMode }.distinctUntilChanged()
 
     suspend fun setMap(mapId: MapPackageId?) {
         dataStore.edit { prefs ->
@@ -49,17 +53,22 @@ class SettingsRepository @Inject constructor(@param:ApplicationContext private v
         }
     }
 
-    suspend fun setTheme(mapPackageId: MapPackageId?, themeId: ThemeId?) {
+    suspend fun setMapTheme(mapPackageId: MapPackageId?, themeId: ThemeId?) {
         Timber.i("Changing theme to $themeId")
         dataStore.edit { prefs ->
-            prefs.setTheme(mapPackageId, themeId)
+            prefs.setMapTheme(mapPackageId, themeId)
             if (mapPackageId != null) {
-                prefs.setTheme(null, themeId)
+                prefs.setMapTheme(null, themeId)
             }
         }
     }
 
-    private fun MutablePreferences.setTheme(mapPackageId: MapPackageId?, themeId: ThemeId?) {
+    suspend fun setInfoDisplayMode(mode: InfoDisplayMode) {
+        Timber.i("Changing info display mode to $mode")
+        dataStore.edit { prefs -> prefs[PREF_INFO_DISPLAY_MODE] = mode.name }
+    }
+
+    private fun MutablePreferences.setMapTheme(mapPackageId: MapPackageId?, themeId: ThemeId?) {
         if (themeId != null) {
             if (themeId.packageName != null) {
                 this[getThemePackageKey(mapPackageId)] = themeId.packageName
@@ -73,11 +82,12 @@ class SettingsRepository @Inject constructor(@param:ApplicationContext private v
         }
     }
 
-    private fun Preferences.toSettings() = Settings(mapPackageId = getMapPackageId(), themeIds = getThemeIds())
+    private fun Preferences.toSettings() =
+        Settings(mapPackage = getMapPackage(), mapThemes = getMapThemes(), infoDisplayMode = getInfoDisplayMode())
 
-    private fun Preferences.getMapPackageId() = this[PREF_MAP_PACKAGE]?.let { MapPackageId(it) }
+    private fun Preferences.getMapPackage() = this[PREF_MAP_PACKAGE]?.let { MapPackageId(it) }
 
-    private fun Preferences.getThemeIds(): Map<MapPackageId?, ThemeId> {
+    private fun Preferences.getMapThemes(): Map<MapPackageId?, ThemeId> {
         val mapPackageIds = asMap().keys.filter(::isThemeNameKey).map(::getMapPackageIdFromThemeNameKey).toSet()
 
         return mapPackageIds
@@ -89,10 +99,14 @@ class SettingsRepository @Inject constructor(@param:ApplicationContext private v
             .toMap()
     }
 
+    private fun Preferences.getInfoDisplayMode(): InfoDisplayMode? =
+        this[PREF_INFO_DISPLAY_MODE]?.let(InfoDisplayMode::valueOf)
+
     companion object {
         private val PREF_MAP_PACKAGE = stringPreferencesKey("map_package")
         private const val PREF_THEME_PACKAGE_PREFIX = "theme_package:"
         private const val PREF_THEME_NAME_PREFIX = "theme_name:"
+        private val PREF_INFO_DISPLAY_MODE = stringPreferencesKey("info_display_mode")
 
         private fun isThemeNameKey(key: Preferences.Key<*>) = key.name.startsWith(PREF_THEME_NAME_PREFIX)
 

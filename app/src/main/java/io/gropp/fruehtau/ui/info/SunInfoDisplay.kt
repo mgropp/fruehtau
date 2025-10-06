@@ -56,13 +56,13 @@ fun SunExtraInfo(locationService: LocationService, modifier: Modifier = Modifier
                 }
             }
 
-            SunExtraInfoText(sunriseSunset, timeUntilSunriseOrSunset, modifier)
+            SunInfoDisplayText(sunriseSunset, timeUntilSunriseOrSunset, modifier)
         }
     }
 }
 
 @Composable
-private fun SunExtraInfoText(
+private fun SunInfoDisplayText(
     sunriseSunset: NextSunriseAndSunset?,
     timeUntilSunriseOrSunset: Duration?,
     modifier: Modifier = Modifier,
@@ -104,9 +104,9 @@ private fun Duration?.formatHHMM(
 
 @Preview
 @Composable
-private fun SunExtraInfoTextPreview() {
+private fun SunInfoDisplayTextPreview() {
     Box(Modifier.background(Color.DarkGray).padding(10.dp)) {
-        SunExtraInfoText(
+        SunInfoDisplayText(
             NextSunriseAndSunset(LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(5)),
             Duration.ofMinutes(171),
         )

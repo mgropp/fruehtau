@@ -27,12 +27,12 @@ import io.gropp.fruehtau.ui.location.WithLocation
 import java.util.Locale
 
 @Composable
-fun LocationExtraInfo(locationService: LocationService, modifier: Modifier = Modifier) {
-    locationService.WithLocation { location -> LocationExtraInfoText(location, modifier) }
+fun LocationInfoDisplay(locationService: LocationService, modifier: Modifier = Modifier) {
+    locationService.WithLocation { location -> LocationInfoDisplayText(location, modifier) }
 }
 
 @Composable
-fun LocationExtraInfoText(location: Location?, modifier: Modifier = Modifier) {
+fun LocationInfoDisplayText(location: Location?, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -59,6 +59,6 @@ private fun Location?.format(
 
 @Preview
 @Composable
-private fun LocationExtraInfoTextPreview() {
-    Box(Modifier.background(Color.DarkGray).padding(10.dp)) { LocationExtraInfoText(Location(48.978747, 13.389318)) }
+private fun LocationInfoDisplayTextPreview() {
+    Box(Modifier.background(Color.DarkGray).padding(10.dp)) { LocationInfoDisplayText(Location(48.978747, 13.389318)) }
 }

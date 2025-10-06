@@ -10,7 +10,7 @@ import org.mapsforge.map.rendertheme.XmlRenderTheme
 @Singleton
 class ThemeService @Inject constructor(themeRepository: ThemeRepository, settingsRepository: SettingsRepository) {
     val theme: Flow<XmlRenderTheme?> =
-        combine(themeRepository.availableThemes, settingsRepository.themeIds, settingsRepository.mapPackageId) {
+        combine(themeRepository.availableThemes, settingsRepository.mapThemes, settingsRepository.mapPackage) {
             themes,
             themeIds,
             mapPackageId ->
