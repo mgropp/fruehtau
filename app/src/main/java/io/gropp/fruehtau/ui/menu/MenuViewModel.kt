@@ -36,7 +36,7 @@ constructor(
         )
 
     private val mapPackageId =
-        settingsRepository.mapPackageId.stateIn(
+        settingsRepository.mapPackage.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
             initialValue = null,
@@ -47,6 +47,6 @@ constructor(
     }
 
     fun setTheme(themeId: ThemeId?) {
-        viewModelScope.launch { settingsRepository.setTheme(mapPackageId.value, themeId) }
+        viewModelScope.launch { settingsRepository.setMapTheme(mapPackageId.value, themeId) }
     }
 }

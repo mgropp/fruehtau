@@ -23,14 +23,14 @@ constructor(
     private val themeRepository: ThemeRepository,
 ) : ViewModel() {
     val activeMapPackage =
-        settingsRepository.mapPackageId.stateIn(
+        settingsRepository.mapPackage.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null,
         )
 
     val activeTheme =
-        combine(settingsRepository.mapPackageId, settingsRepository.themeIds) { mapPackageId, themeIds ->
+        combine(settingsRepository.mapPackage, settingsRepository.mapThemes) { mapPackageId, themeIds ->
                 themeIds?.get(mapPackageId)
             }
             .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = null)
@@ -54,7 +54,7 @@ constructor(
     }
 
     fun setActiveTheme(theme: ThemeId) {
-        viewModelScope.launch { settingsRepository.setTheme(activeMapPackage.value, theme) }
+        viewModelScope.launch { settingsRepository.setMapTheme(activeMapPackage.value, theme) }
     }
 
     fun deleteMap(mapPackageId: MapPackageId, mapId: String) {
